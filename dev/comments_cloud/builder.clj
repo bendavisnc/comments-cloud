@@ -75,40 +75,44 @@
           (datum :count)
           -1))
       ; :count
-      (map 
-        (fn 
-          [[k, v]]
-          {
-            :word k
-            :found-in v
-            :count (count v)
-          })
-        (let [
-            counts (atom {})
-          ]
-          (do
-            (doall
-              (map
-                (fn [datum]
-                  (do
-                    (let [
-                        comments (datum :comments-found)
-                      ]
-                      (doall
-                        (map
-                          (fn [each-word]
-                            (if
-                              (contains? @counts each-word)
-                                ; (swap! counts assoc each-word (inc (@counts each-word)))
-                                ; (swap! counts assoc each-word 1)))
-                                (swap! counts assoc each-word (conj (@counts each-word) (datum :full-path)))
-                                (swap! counts assoc each-word [(datum :full-path)])))
-                          (mapcat
-                            (fn [each-comment-in-file]
-                              (clojure.string/split each-comment-in-file #" "))
-                            comments))))))
-                raw-word-data))
-            @counts))))))
+      (filter 
+        (fn [datum]
+          (not
+            (some #(= (datum :word) %) (config :blacklist))))
+        (map 
+          (fn 
+            [[k, v]]
+            {
+              :word k
+              :found-in v
+              :count (count v)
+            })
+          (let [
+              counts (atom {})
+            ]
+            (do
+              (doall
+                (map
+                  (fn [datum]
+                    (do
+                      (let [
+                          comments (datum :comments-found)
+                        ]
+                        (doall
+                          (map
+                            (fn [each-word]
+                              (if
+                                (contains? @counts each-word)
+                                  ; (swap! counts assoc each-word (inc (@counts each-word)))
+                                  ; (swap! counts assoc each-word 1)))
+                                  (swap! counts assoc each-word (conj (@counts each-word) (datum :full-path)))
+                                  (swap! counts assoc each-word [(datum :full-path)])))
+                            (mapcat
+                              (fn [each-comment-in-file]
+                                (clojure.string/split each-comment-in-file #" "))
+                              comments))))))
+                  raw-word-data))
+              @counts)))))))
 
 
 (def spit-word-count-data
@@ -120,7 +124,29 @@
           (build-raw-word-data))
         :stream nil
         ))))
-                    
+
+
+(def build-simple-word-count-list
+  (fn [word-count-data]
+    (map
+      :word
+      word-count-data)))
+
+(def spit-simple-word-count-list
+  (fn []
+    (spit 
+      "./generated/simple-word-count-list.edn"
+        ; (build-simple-word-count-list
+          ; (build-word-count
+            ; (build-raw-word-data))))))
+      (clojure.pprint/write
+        (build-simple-word-count-list
+          (build-word-count
+            (build-raw-word-data)))
+        :stream nil
+        :length nil
+        ))))
+
 
 (def testt
   (fn []

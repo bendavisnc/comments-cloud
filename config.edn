@@ -7,4 +7,8 @@
 
  ; the actual extension of the files we're looking at
  :target-ext "java"
+
+ ; words that we're filtering against
+ :blacklist
+	["", "the", "to", "of", "is", "a", "this", "and", "in", "for", "be", "with", "that", "or", "it", "if", "as", "can", "by", "an", "are"]
 }
