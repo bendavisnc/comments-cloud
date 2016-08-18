@@ -2,6 +2,7 @@
   (:require 
     [clojure.java.io :as io]
     [comments-cloud.config :refer [config]]
+    [comments-cloud.general-util :refer [spit-proper, get-relative-file-path]]
     [comments-cloud.comments-util :as comments-util]
     )
   (:import [org.apache.commons.io FilenameUtils])
@@ -10,18 +11,6 @@
 ;;
 ;;
 ;; Responsible for actually generating our word list.
-
-
-(def get-relative-file-path
-  (fn [f]
-    (clojure.string/replace
-      (.getCanonicalPath f)
-      (.getCanonicalPath 
-        (first
-          (.listFiles
-            (io/file (config :parse-dir)))))
-      "")))
-
 
 
 (def get-all-files
@@ -59,7 +48,7 @@
 
 (def spit-raw-word-data
   (fn []
-    (spit 
+    (spit-proper
       "./generated/raw-word-data.edn"
       (clojure.pprint/write
         (build-raw-word-data)
@@ -117,13 +106,10 @@
 
 (def spit-word-count-data
   (fn []
-    (spit 
+    (spit-proper
       "./generated/word-count-data.edn"
-      (clojure.pprint/write
-        (build-word-count
-          (build-raw-word-data))
-        :stream nil
-        ))))
+      (build-word-count
+        (build-raw-word-data)))))
 
 
 (def build-simple-word-count-list
@@ -134,18 +120,12 @@
 
 (def spit-simple-word-count-list
   (fn []
-    (spit 
+    (spit-proper 
       "./generated/simple-word-count-list.edn"
-        ; (build-simple-word-count-list
-          ; (build-word-count
-            ; (build-raw-word-data))))))
-      (clojure.pprint/write
-        (build-simple-word-count-list
-          (build-word-count
-            (build-raw-word-data)))
-        :stream nil
-        :length nil
-        ))))
+      (build-simple-word-count-list
+        (build-word-count
+          (build-raw-word-data))))))
+
 
 
 (def testt
