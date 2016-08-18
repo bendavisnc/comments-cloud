@@ -1,4 +1,4 @@
-(ns comments-cloud.core
+  (ns comments-cloud.core
   (:require 
     [ajax.core :refer [GET]]
     [promesa.core :as p :include-macros true]
@@ -6,8 +6,8 @@
 
 (enable-console-print!)
 
-; (println "This text is printed from src/comments-cloud/core.cljs. Go ahead and edit it and see reloading in action.")
-;; define your app data so that it doesn't get over-written on reload
+(println "This text is printed from src/comments-cloud/core.cljs. Go ahead and edit it and see reloading in action.")
+; define your app data so that it doesn't get over-written on reload
 
 (defonce app-state (atom {:text "Hello world!"}))
 
@@ -18,26 +18,49 @@
 )
 
 
-;;
-;;
-;; This is a simple word cloud app that targets comments found in a provided src dir
-;; This heavily goes off of the work found here: http://bl.ocks.org/ericcoopey/6382449
+;
+;
+; This is a simple word cloud app that targets comments found in a provided src dir
+; This heavily goes off of the work found here: http://bl.ocks.org/ericcoopey/6382449
 
-(def desired-width 800)
-(def desired-height 800)
+(def desired-width 1600)
+(def desired-height 1200)
+; (def desired-height 1600)
+; (def desired-width 500)
+; (def desired-height 500)
 
 (def create-base-svg
   (fn []
-    (->
-      (.select js/d3 "body")
-      (.style "background-color" "black")
-      (.append "svg")
-      (.attr "width" desired-width)
-      (.attr "height" desired-height)
-      (.append "g"))))
+    (let
+      [
+        selection
+          (->
+            (.select js/d3 "body")
+            ; (.style "background-color" "black")
+            (.append "svg")
+            (.attr "width" desired-width)
+            (.attr "height" desired-height)
+            (.append "g")
+            ; .attr("transform", "translate(" + layout.size()[0] / 2 + "," + layout.size()[1] / 2 + ")")
+            (.attr "transform"
+              (str "translate(" (/ desired-width 2)"," (/ desired-height 2) ")")))
+      ]
+      (do
+        (->
+          selection
+          (.append "rect")
+          (.attr "width" desired-width)
+          (.attr "height" desired-height)
+          (.attr "fill" "black")
+          (.attr "transform"
+            (str "translate(" (/ desired-width -2)"," (/ desired-height -2) ")")))
+        selection))))
+        ; )
+      ; (->
+        ; (.select js/d3 "svg")
+        ; (.select "g")))))
+      
 
-
-; (create-base-svg)
 
 (def get-word-list
   "returns a promise of a GET request that'll contain our word cloud data"
@@ -62,9 +85,13 @@
         (fn [d]
           (str (.-size d) "px")))
       (.style "fill" "blue")
+      (.style "font-family", "Impact")
+      (.attr "text-anchor", "middle")
       (.attr "transform"
         (fn [d]
-          (str "translate("(.-x d) "," (.-y d) ")")))
+          (str 
+            "translate("(.-x d) "," (.-y d) ")"
+            "rotate("(.-rotate d)")")))
       (.text 
         (fn [d]
           (.-text d))))))
@@ -74,12 +101,19 @@
     (->
       (.cloud (aget js/d3 "layout"))
       (.words js/exampleData)
+      (.font "Impact")
       (.fontSize 
         (fn [d]
+          ; (.-size d)))
           (*
-            (.-size d))))
+            (.-size d) 10)))
       (.size (clj->js [desired-width desired-height]))
-      (.spiral "rectangular") 
+      ; (.padding 4)
+      ; (.rotate
+        ; (fn []
+          ; (* 2 (rand-int 2) 90)))
+          ; (* (rand) 360)))
+          ; (rand-nth (range -30 30 10))))
       (.on "end" draw-everything)
       (.start))))
 

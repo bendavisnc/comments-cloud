@@ -1,6 +1,10 @@
 (ns comments-cloud.builder
   )
 
+;;
+;;
+;; Responsible for actually generating our word list.
+
 (def config
 	(clojure.edn/read-string
 		(slurp "./config.edn")))
