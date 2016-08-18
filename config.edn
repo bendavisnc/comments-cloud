@@ -1,3 +1,10 @@
 {
- :parse-dir "./parse-src"
+ ; what directory we're parsing under
+ :parse-dir "./parse-src" 
+
+ ; regexs for java comments
+ :comments-regex ["\\/\\/.*", "(?s)/\\*.*\\*/"] 
+
+ ; the actual extension of the files we're looking at
+ :target-ext "java"
 }

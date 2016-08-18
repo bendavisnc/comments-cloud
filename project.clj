@@ -12,6 +12,7 @@
                   :exclusions [org.clojure/tools.reader]]
                  [cljs-ajax "0.5.8"]
                  [funcool/promesa "1.4.0"]
+                 [commons-io/commons-io "2.5"]
                  ]
 
   :plugins [[lein-figwheel "0.5.4-7"]
