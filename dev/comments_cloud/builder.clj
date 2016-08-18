@@ -15,8 +15,11 @@
 (def get-relative-file-path
   (fn [f]
     (clojure.string/replace
-      (.getPath f)
-      (.getCanonicalPath (io/file (config :parse-dir)))
+      (.getCanonicalPath f)
+      (.getCanonicalPath 
+        (first
+          (.listFiles
+            (io/file (config :parse-dir)))))
       "")))
 
 
@@ -66,35 +69,57 @@
 
 (def build-word-count
   (fn [raw-word-data]
-    (do
-      (let [
-          counts (atom {})
-        ]
-        (do
-          (doall
-            (map
-              (fn [datum]
-                (do
-                  (let [
-                      comments (datum :comments-found)
-                    ]
-                    (do
-                      (println comments)
+    (sort-by
+      (fn [datum]
+        (*
+          (datum :count)
+          -1))
+      ; :count
+      (map 
+        (fn 
+          [[k, v]]
+          {
+            :word k
+            :found-in v
+            :count (count v)
+          })
+        (let [
+            counts (atom {})
+          ]
+          (do
+            (doall
+              (map
+                (fn [datum]
+                  (do
+                    (let [
+                        comments (datum :comments-found)
+                      ]
                       (doall
                         (map
                           (fn [each-word]
                             (if
-                              (contains?
-                                @counts
-                                each-word)
-                                (swap! counts assoc each-word (inc (@counts each-word)))
-                                (swap! counts assoc each-word 1)))
+                              (contains? @counts each-word)
+                                ; (swap! counts assoc each-word (inc (@counts each-word)))
+                                ; (swap! counts assoc each-word 1)))
+                                (swap! counts assoc each-word (conj (@counts each-word) (datum :full-path)))
+                                (swap! counts assoc each-word [(datum :full-path)])))
                           (mapcat
                             (fn [each-comment-in-file]
                               (clojure.string/split each-comment-in-file #" "))
-                            comments)))))))
-              raw-word-data))
-          @counts)))))
+                            comments))))))
+                raw-word-data))
+            @counts))))))
+
+
+(def spit-word-count-data
+  (fn []
+    (spit 
+      "./generated/word-count-data.edn"
+      (clojure.pprint/write
+        (build-word-count
+          (build-raw-word-data))
+        :stream nil
+        ))))
                     
 
 (def testt

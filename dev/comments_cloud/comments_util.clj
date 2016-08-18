@@ -25,21 +25,30 @@
               each-string))))
       from-string-set)))
 
+(def everything-lowercase
+  (fn [from-string-set]
+    (map
+      (fn [each-string]
+        (clojure.string/lower-case each-string))
+      from-string-set)))
+
 
 (def get-all-comments-from-file
+  "Returns a list of all of the comments (lowercased and letters only) found in a given file"
   (fn [f]
     (let [
         regexs-to-use (config :comments-regex)
         file-contents
           (slurp f)
       ]
-      (non-letters-stripped
-        (mapcat
-          (fn [regex]
-            (re-seq
-              (re-pattern regex)
-              file-contents))
-          regexs-to-use)))))
+      (everything-lowercase
+        (non-letters-stripped
+          (mapcat
+            (fn [regex]
+              (re-seq
+                (re-pattern regex)
+                file-contents))
+            regexs-to-use))))))
 
 
 ; (def get-all-comments
