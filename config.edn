@@ -16,7 +16,7 @@
  :blacklist
 	["", "you", "your", "will" "the", "to", "of", "is", "a", "this", "and", "in", "for", "be", "with", "that", "or", "it", "if", "as", "can", "by", "an", "are"]
 
- :testfn
-   (fn [] (println "cool"))
+ :color-fns
+   "for-clj"
  
 }

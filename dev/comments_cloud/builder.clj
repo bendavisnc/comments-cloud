@@ -2,10 +2,10 @@
   (:require 
     [clojure.java.io :as io]
     [comments-cloud.config :refer [config]]
-    [comments-cloud.general-util :refer [in? spit-proper, get-relative-file-path]]
+    [comments-cloud.general-util :refer [in? get-relative-file-path, parsed-found-in-list, get-all-files]]
     [comments-cloud.comments-util :as comments-util]
+    [comments-cloud.color-fns.for-clj :as for-clj]
     )
-  (:import [org.apache.commons.io FilenameUtils])
   )
 
 ;;
@@ -13,26 +13,6 @@
 ;; Responsible for actually generating our word list.
 
 
-(def get-all-files
-  "Returns a list of all of the files given under the configured target directory that match the configured target extension"
-  (fn []
-    (do
-      (println "@ get-all-files")
-      (time
-        (let [
-            root-dir 
-              (file-seq
-                (io/file (config :parse-dir)))
-            all-files
-              (filter
-                (fn [f]
-                  (in?
-                    (FilenameUtils/getExtension
-                      (.getName f))
-                    (config :target-ext)))
-                root-dir)
-          ]
-          all-files)))))
 
 
 (def build-raw-word-data
@@ -52,47 +32,6 @@
                 (comments-util/get-all-comments-from-file each-target-file)
             })
           (get-all-files))))))
-
-(def spit-raw-word-data
-  (fn []
-    (do
-      (println "@ spit-raw-word-data")
-      (time
-        (spit-proper
-          "./generated/raw-word-data.edn"
-          (clojure.pprint/write
-            (build-raw-word-data)
-            :stream nil
-          ))))))
-
-
-(def parsed-found-in-list
-  (fn [path-list]
-    (sort-by
-      (fn [datum]
-        (*
-          (datum :times)
-          -1))
-      (map
-        (fn [[k, v]]
-          {
-            :where k
-            :times v
-            })
-        (let [
-            counts (atom {})
-          ]
-          (do
-            (doall
-              (map
-                (fn [list-item]
-                  (if
-                    (contains? @counts list-item)
-                    (swap! counts assoc list-item (inc (@counts list-item)))
-                    (swap! counts assoc list-item 1)))
-                path-list))
-          @counts))))))
-
 
 
 
@@ -152,13 +91,6 @@
                     @counts))))))))))
 
 
-(def spit-word-count-data
-  (fn []
-    (spit-proper
-      "./generated/word-count-data.edn"
-      (build-word-count-data
-        (build-raw-word-data)))))
-
 
 (def build-simple-word-count-list
   (fn 
@@ -169,17 +101,53 @@
         :word
         word-count-data))))
 
-(def spit-simple-word-count-list
+(def build-interp-func
+  (fn [maxval, minval]
+    (fn [n]
+      (/
+        (- n minval)
+        (- maxval minval)))))
+
+(def build-color-func
   (fn []
-    (spit-proper 
-      "./generated/simple-word-count-list.edn"
-      (build-simple-word-count-list))))
+    (let [
+        fns 
+          (eval 
+            (read-string
+              (str "comments-cloud.color-fns." (config :color-fns) "/fns")
+              ))
+      ]
+      (fn [datum]
+        (loop [
+            color-fns fns
+          ]
+          (let [
+              [color colorfn] (first color-fns) 
+            ]
+            (cond
+              (colorfn datum)
+                color
+              :else
+                (recur (rest color-fns)))))))))
 
-(def testt
-  (fn []
-    (build-word-count-data)))
 
-(def test-file
-  (io/file "/home/ben/Programming/forWork/comments-cloud/parse-src/java-design-patterns/dao/src/main/java/com/iluwatar/dao/CustomerDaoImpl.java"))
-
-
+(def build-ready-data
+  (fn 
+    ([]
+      (build-ready-data (build-word-count-data)))
+    ([word-count-data]
+      (let [
+          i-func (build-interp-func ((first word-count-data) :count) ((last word-count-data) :count))
+          color-func (build-color-func)
+        ]
+        (map
+          (fn [datum]
+            {
+              :word
+                (datum :word)
+              :size
+                (i-func (datum :count))
+              :color
+                (color-func datum)
+            })
+          word-count-data)))))
