@@ -30,3 +30,8 @@
         :stream nil
         :length nil
         ))))
+
+
+(def in?
+  (fn [x c]
+    (some #(= x %) c)))

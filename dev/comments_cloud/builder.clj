@@ -2,7 +2,7 @@
   (:require 
     [clojure.java.io :as io]
     [comments-cloud.config :refer [config]]
-    [comments-cloud.general-util :refer [spit-proper, get-relative-file-path]]
+    [comments-cloud.general-util :refer [in? spit-proper, get-relative-file-path]]
     [comments-cloud.comments-util :as comments-util]
     )
   (:import [org.apache.commons.io FilenameUtils])
@@ -26,19 +26,14 @@
             all-files
               (filter
                 (fn [f]
-                  (=
-                    (config :target-ext)
+                  (in?
                     (FilenameUtils/getExtension
-                      (.getName f))))
+                      (.getName f))
+                    (config :target-ext)))
                 root-dir)
           ]
           all-files)))))
 
-(def testbs
-  (fn []
-    (count
-      (file-seq
-        (io/file (config :parse-dir))))))
 
 (def build-raw-word-data
   "This is where most of the heavy lifting occurs.
@@ -71,6 +66,36 @@
           ))))))
 
 
+(def parsed-found-in-list
+  (fn [path-list]
+    (sort-by
+      (fn [datum]
+        (*
+          (datum :times)
+          -1))
+      (map
+        (fn [[k, v]]
+          {
+            :where k
+            :times v
+            })
+        (let [
+            counts (atom {})
+          ]
+          (do
+            (doall
+              (map
+                (fn [list-item]
+                  (if
+                    (contains? @counts list-item)
+                    (swap! counts assoc list-item (inc (@counts list-item)))
+                    (swap! counts assoc list-item 1)))
+                path-list))
+          @counts))))))
+
+
+
+
 (def build-word-count-data
   (fn 
     ([]
@@ -88,13 +113,13 @@
             (filter 
               (fn [datum]
                 (not
-                  (some #(= (datum :word) %) (config :blacklist))))
+                  (in? (datum :word) (config :blacklist))))
               (pmap 
                 (fn 
                   [[k, v]]
                   {
                     :word k
-                    :found-in v
+                    :found-in (parsed-found-in-list v)
                     :count (count v)
                   })
                 (let [

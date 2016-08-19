@@ -20,7 +20,9 @@
             (filter
               (fn [each-letter]
                 (or
-                  (Character/isLetter each-letter)
+                  (try
+                    (Character/isLetter each-letter)
+                    (catch Exception e (do (println "well darn") (println each-letter) (throw e))))
                   (Character/isSpaceChar each-letter)))
               each-string))))
       from-string-set)))

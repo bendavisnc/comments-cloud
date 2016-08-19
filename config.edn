@@ -4,14 +4,19 @@
  ; :parse-dir "./parse-src" 
  :parse-dir "." 
 
- :comments-regex ["\\;.*?\\n"]  ; clojure comments
+ :comments-regex ["\\;.*?\\n", "\\\".*?\\\""]  ; clojure comments
+ ;:comments-regex ["\\;.*?\\n", "(?s)\\(def.*?\\\"(.*?)\\\""]  ; clojure comments
  ;:comments-regex ["\\/\\/.*", "(?s)/\\*.*\\*/"]  ; java comments
 
  ; the actual extension of the files we're looking at
- :target-ext "clj"
+ :target-ext ["clj", "cljs"]
  ; :target-ext "java"
 
  ; words that we're filtering against
  :blacklist
-	["", "the", "to", "of", "is", "a", "this", "and", "in", "for", "be", "with", "that", "or", "it", "if", "as", "can", "by", "an", "are"]
+	["", "you", "your", "will" "the", "to", "of", "is", "a", "this", "and", "in", "for", "be", "with", "that", "or", "it", "if", "as", "can", "by", "an", "are"]
+
+ :testfn
+   (fn [] (println "cool"))
+ 
 }
