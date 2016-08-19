@@ -15,7 +15,7 @@ This is my "R days" project at Sciquest.
 
 ## Overview
 
-FIXME: Write a paragraph about the library/project and highlight its goals.
+![can't load example screenshot](https://raw.githubusercontent.com/bendavisnc/comments-cloud/master/rdaysWordCloudScreenshot.png)
 
 ## Setup
 
