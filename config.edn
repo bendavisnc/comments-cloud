@@ -18,5 +18,8 @@
 
  :color-fns
    "for-clj"
+
+ :limit
+   100
  
 }

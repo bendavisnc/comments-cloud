@@ -67,10 +67,10 @@
   (fn []
     (p/promise
       (fn [resolve reject]
-        (GET "./generated/word-list.edn" 
+        (GET "./generated/word-cloud-data.edn" 
           {:handler
             (fn [response]
-              (resolve response))
+              (resolve (cljs.reader/read-string response)))
           })))))
 
 (def draw-everything
@@ -84,7 +84,9 @@
       (.style "font-size"
         (fn [d]
           (str (.-size d) "px")))
-      (.style "fill" "blue")
+      (.style "fill"
+        (fn [d]
+          (.-color d)))
       (.style "font-family", "Impact")
       (.attr "text-anchor", "middle")
       (.attr "transform"
@@ -97,30 +99,37 @@
           (.-text d))))))
 
 (def create-word-cloud
-  (fn []
+  (fn [data]
     (->
       (.cloud (aget js/d3 "layout"))
-      (.words js/exampleData)
+      ; (.words js/exampleData)
+      (.words data)
+      (.text
+        (fn [d]
+          (.-word d)))
       (.font "Impact")
       (.fontSize 
         (fn [d]
-          ; (.-size d)))
           (*
-            (.-size d) 10)))
+            (* desired-height 0.2)
+            (.-size d))))
+            ; (.-size d) 100)))
       (.size (clj->js [desired-width desired-height]))
       ; (.padding 4)
-      ; (.rotate
-        ; (fn []
-          ; (* 2 (rand-int 2) 90)))
-          ; (* (rand) 360)))
-          ; (rand-nth (range -30 30 10))))
       (.on "end" draw-everything)
       (.start))))
 
 
-(def testt
+(def go
   (fn []
     (do
-      (create-word-cloud))))
+      (p/map
+        (fn [given-data]
+          (create-word-cloud (clj->js given-data)))
+        (get-word-list)))))
+
+(js/jQuery
+  go)
+
 
 

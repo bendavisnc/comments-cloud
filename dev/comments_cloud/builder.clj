@@ -101,12 +101,40 @@
         :word
         word-count-data))))
 
+; (def build-interp-func
+  ; (fn [maxval, minval]
+    ; (fn [n]
+      ; (/
+        ; (- n minval)
+        ; (- maxval minval)))))
+
+(def get-total-count
+  (fn [word-count-data]
+    (reduce 
+      +
+      (map :count word-count-data))))
+
 (def build-interp-func
-  (fn [maxval, minval]
-    (fn [n]
-      (/
-        (- n minval)
-        (- maxval minval)))))
+  (fn [word-count-data]
+    (let [
+        total-count (get-total-count word-count-data)
+        basic-func
+          (fn [datum]
+            (float
+              (/
+                (datum :count)
+                total-count)))
+        x-factor
+          (/
+            1
+            (basic-func
+              (first word-count-data)))
+      ]
+      (fn [datum]
+        (*
+          (basic-func datum)
+          x-factor)))))
+
 
 (def build-color-func
   (fn []
@@ -136,18 +164,23 @@
     ([]
       (build-ready-data (build-word-count-data)))
     ([word-count-data]
-      (let [
-          i-func (build-interp-func ((first word-count-data) :count) ((last word-count-data) :count))
-          color-func (build-color-func)
-        ]
-        (map
-          (fn [datum]
-            {
-              :word
-                (datum :word)
-              :size
-                (i-func (datum :count))
-              :color
-                (color-func datum)
-            })
-          word-count-data)))))
+      (subvec 
+        (vec
+          (let [
+              ; i-func (build-interp-func ((first word-count-data) :count) ((last word-count-data) :count))
+              i-func (build-interp-func word-count-data)
+              color-func (build-color-func)
+            ]
+            (map
+              (fn [datum]
+                {
+                  :word
+                    (datum :word)
+                  :size
+                    ; (i-func (datum :count))
+                    (i-func datum)
+                  :color
+                    (color-func datum)
+                })
+              word-count-data)))
+        0 (config :limit)))))
