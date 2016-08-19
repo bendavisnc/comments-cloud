@@ -1,6 +1,17 @@
 # comments-cloud
 
-FIXME: Write a one-line description of your library/project.
+
+This is my "R days" project at Sciquest.
+
+* This is a two part app:
+
+  * dev/comments-cloud/builder 
+      * used to generate comments data based on a targeted code base (currently configured to point at itself)
+
+  * src/cljs/comments-cloud/core  
+      * where the actual d3 code exists to render the generated data
+
+
 
 ## Overview
 
