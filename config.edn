@@ -1,12 +1,15 @@
 {
  ; what directory we're parsing under
- :parse-dir "./parse-src" 
+ ; :parse-dir "./parse-src" 
+ ; :parse-dir "./parse-src" 
+ :parse-dir "." 
 
- ; regexs for java comments
- :comments-regex ["\\/\\/.*", "(?s)/\\*.*\\*/"] 
+ :comments-regex ["\\;.*?\\n"]  ; clojure comments
+ ;:comments-regex ["\\/\\/.*", "(?s)/\\*.*\\*/"]  ; java comments
 
  ; the actual extension of the files we're looking at
- :target-ext "java"
+ :target-ext "clj"
+ ; :target-ext "java"
 
  ; words that we're filtering against
  :blacklist

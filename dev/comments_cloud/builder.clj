@@ -71,85 +71,88 @@
           ))))))
 
 
-(def build-word-count
-  (fn [raw-word-data]
-    (do
-      (println "@ build-word-count")
-      (time
-        (sort-by
-          (fn [datum]
-            (*
-              (datum :count)
-              -1))
-          ; :count
-          (filter 
+(def build-word-count-data
+  (fn 
+    ([]
+      (build-word-count-data (build-raw-word-data)))
+    ([raw-word-data]
+      (do
+        (println "@ build-word-count")
+        (time
+          (sort-by
             (fn [datum]
-              (not
-                (some #(= (datum :word) %) (config :blacklist))))
-            (pmap 
-              (fn 
-                [[k, v]]
-                {
-                  :word k
-                  :found-in v
-                  :count (count v)
-                })
-              (let [
-                  counts (atom {})
-                ]
-                (do
-                  (doall
-                    (pmap
-                      (fn [datum]
-                        (do
-                          (let [
-                              comments (datum :comments-found)
-                            ]
-                            (doall
-                              (pmap
-                                (fn [each-word]
-                                  (if
-                                    (contains? @counts each-word)
-                                      ; (swap! counts assoc each-word (inc (@counts each-word)))
-                                      ; (swap! counts assoc each-word 1)))
-                                      (swap! counts assoc each-word (conj (@counts each-word) (datum :full-path)))
-                                      (swap! counts assoc each-word [(datum :full-path)])))
-                                (mapcat
-                                ; (concat
-                                  ; (pmap
-                                    (fn [each-comment-in-file]
-                                      (clojure.string/split each-comment-in-file #" "))
-                                    comments))))))
-                      raw-word-data))
-                  @counts)))))))))
+              (*
+                (datum :count)
+                -1))
+            ; :count
+            (filter 
+              (fn [datum]
+                (not
+                  (some #(= (datum :word) %) (config :blacklist))))
+              (pmap 
+                (fn 
+                  [[k, v]]
+                  {
+                    :word k
+                    :found-in v
+                    :count (count v)
+                  })
+                (let [
+                    counts (atom {})
+                  ]
+                  (do
+                    (doall
+                      (pmap
+                        (fn [datum]
+                          (do
+                            (let [
+                                comments (datum :comments-found)
+                              ]
+                              (doall
+                                (pmap
+                                  (fn [each-word]
+                                    (if
+                                      (contains? @counts each-word)
+                                        ; (swap! counts assoc each-word (inc (@counts each-word)))
+                                        ; (swap! counts assoc each-word 1)))
+                                        (swap! counts assoc each-word (conj (@counts each-word) (datum :full-path)))
+                                        (swap! counts assoc each-word [(datum :full-path)])))
+                                  (mapcat
+                                  ; (concat
+                                    ; (pmap
+                                      (fn [each-comment-in-file]
+                                        (clojure.string/split each-comment-in-file #" "))
+                                      comments))))))
+                        raw-word-data))
+                    @counts))))))))))
 
 
 (def spit-word-count-data
   (fn []
     (spit-proper
       "./generated/word-count-data.edn"
-      (build-word-count
+      (build-word-count-data
         (build-raw-word-data)))))
 
 
 (def build-simple-word-count-list
-  (fn [word-count-data]
-    (map
-      :word
-      word-count-data)))
+  (fn 
+    ([]
+      (build-simple-word-count-list (build-word-count-data)))
+    ([word-count-data]
+      (map
+        :word
+        word-count-data))))
 
 (def spit-simple-word-count-list
   (fn []
     (spit-proper 
       "./generated/simple-word-count-list.edn"
-      (build-simple-word-count-list
-        (build-word-count
-          (build-raw-word-data))))))
+      (build-simple-word-count-list))))
 
 (def testt
   (fn []
-    (build-word-count 
-      (build-raw-word-data))))
+    (build-word-count-data)))
 
 (def test-file
   (io/file "/home/ben/Programming/forWork/comments-cloud/parse-src/java-design-patterns/dao/src/main/java/com/iluwatar/dao/CustomerDaoImpl.java"))
